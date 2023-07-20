@@ -71,13 +71,14 @@ func El(name string, children ...Node) Node {
 	return NodeFunc(func(w2 io.Writer) error {
 		w := &statefulWriter{w: w2}
 
-		w.Write([]byte("<" + name))
+		w.WriteString("<")
+		w.WriteString(name)
 
 		for _, c := range children {
 			renderChild(w, c, AttributeType)
 		}
 
-		w.Write([]byte(">"))
+		w.WriteString(">")
 
 		if isVoidElement(name) {
 			return w.err
@@ -87,7 +88,10 @@ func El(name string, children ...Node) Node {
 			renderChild(w, c, ElementType)
 		}
 
-		w.Write([]byte("</" + name + ">"))
+		w.WriteString("</")
+		w.WriteString(name)
+		w.WriteString(">")
+
 		return w.err
 	})
 }
@@ -123,11 +127,12 @@ type statefulWriter struct {
 	err error
 }
 
-func (w *statefulWriter) Write(p []byte) {
+func (w *statefulWriter) WriteString(s string) {
 	if w.err != nil {
 		return
 	}
-	_, w.err = w.w.Write(p)
+
+	_, w.err = io.WriteString(w.w, s)
 }
 
 // voidElements don't have end tags and must be treated differently in the rendering.
@@ -179,12 +184,21 @@ type attr struct {
 
 // Render satisfies Node.
 func (a *attr) Render(w io.Writer) error {
+	sw := &statefulWriter{w: w}
+
 	if a.value == nil {
-		_, err := w.Write([]byte(" " + a.name))
-		return err
+		sw.WriteString(" ")
+		sw.WriteString(a.name)
+
+		return sw.err
 	}
-	_, err := w.Write([]byte(" " + a.name + `="` + template.HTMLEscapeString(*a.value) + `"`))
-	return err
+
+	sw.WriteString(" ")
+	sw.WriteString(a.name)
+	sw.WriteString(`="`)
+	sw.WriteString(template.HTMLEscapeString(*a.value))
+	sw.WriteString(`"`)
+	return sw.err
 }
 
 // Type satisfies nodeTypeDescriber.
@@ -202,7 +216,7 @@ func (a *attr) String() string {
 // Text creates a text DOM Node that Renders the escaped string t.
 func Text(t string) Node {
 	return NodeFunc(func(w io.Writer) error {
-		_, err := w.Write([]byte(template.HTMLEscapeString(t)))
+		_, err := io.WriteString(w, template.HTMLEscapeString(t))
 		return err
 	})
 }
@@ -210,7 +224,7 @@ func Text(t string) Node {
 // Textf creates a text DOM Node that Renders the interpolated and escaped string format.
 func Textf(format string, a ...interface{}) Node {
 	return NodeFunc(func(w io.Writer) error {
-		_, err := w.Write([]byte(template.HTMLEscapeString(fmt.Sprintf(format, a...))))
+		_, err := io.WriteString(w, template.HTMLEscapeString(fmt.Sprintf(format, a...)))
 		return err
 	})
 }
@@ -218,7 +232,7 @@ func Textf(format string, a ...interface{}) Node {
 // Raw creates a text DOM Node that just Renders the unescaped string t.
 func Raw(t string) Node {
 	return NodeFunc(func(w io.Writer) error {
-		_, err := w.Write([]byte(t))
+		_, err := io.WriteString(w, t)
 		return err
 	})
 }
@@ -226,7 +240,7 @@ func Raw(t string) Node {
 // Rawf creates a text DOM Node that just Renders the interpolated and unescaped string format.
 func Rawf(format string, a ...interface{}) Node {
 	return NodeFunc(func(w io.Writer) error {
-		_, err := w.Write([]byte(fmt.Sprintf(format, a...)))
+		_, err := io.WriteString(w, fmt.Sprintf(format, a...))
 		return err
 	})
 }
