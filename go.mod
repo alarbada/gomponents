@@ -1,3 +1,3 @@
-module "github.com/alarbada/gomponents"
+module github.com/alarbada/gomponents
 
 go 1.20
