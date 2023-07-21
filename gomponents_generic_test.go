@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	g "github.com/maragudk/gomponents"
-	"github.com/maragudk/gomponents/internal/assert"
+	g "github.com/alarbada/gomponents"
+	"github.com/alarbada/gomponents/internal/assert"
 )
 
 func TestMap(t *testing.T) {

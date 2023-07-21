@@ -1,3 +1,3 @@
-module "github.com/maragudk/gomponents"
+module "github.com/alarbada/gomponents"
 
-go 1.18
+go 1.20

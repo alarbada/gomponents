@@ -6,8 +6,8 @@ import (
 	"sort"
 	"strings"
 
-	g "github.com/maragudk/gomponents"
-	. "github.com/maragudk/gomponents/html"
+	g "github.com/alarbada/gomponents"
+	. "github.com/alarbada/gomponents/html"
 )
 
 // HTML5Props for HTML5.

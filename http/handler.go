@@ -4,7 +4,7 @@ package http
 import (
 	"net/http"
 
-	g "github.com/maragudk/gomponents"
+	g "github.com/alarbada/gomponents"
 )
 
 // Handler is like http.Handler but returns a Node and an error.

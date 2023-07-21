@@ -4,10 +4,10 @@ import (
 	"os"
 	"testing"
 
-	g "github.com/maragudk/gomponents"
-	. "github.com/maragudk/gomponents/components"
-	. "github.com/maragudk/gomponents/html"
-	"github.com/maragudk/gomponents/internal/assert"
+	g "github.com/alarbada/gomponents"
+	. "github.com/alarbada/gomponents/components"
+	. "github.com/alarbada/gomponents/html"
+	"github.com/alarbada/gomponents/internal/assert"
 )
 
 func TestHTML5(t *testing.T) {

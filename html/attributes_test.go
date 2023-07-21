@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	g "github.com/maragudk/gomponents"
-	. "github.com/maragudk/gomponents/html"
-	"github.com/maragudk/gomponents/internal/assert"
+	g "github.com/alarbada/gomponents"
+	. "github.com/alarbada/gomponents/html"
+	"github.com/alarbada/gomponents/internal/assert"
 )
 
 func TestBooleanAttributes(t *testing.T) {
