@@ -289,3 +289,14 @@ func ExampleIf() {
 	_ = e.Render(os.Stdout)
 	// Output: <div><span>You lost your hat!</span></div>
 }
+
+func TestForeach(t *testing.T) {
+	t.Run("renders a collection of datatypes into a single node", func(t *testing.T) {
+		e := g.El("div",
+			g.Foreach([]string{"a", "b", "c"}, func(v string) g.Node {
+				return g.El("span", g.Text(v))
+			}),
+		)
+		assert.Equal(t, `<div><span>a</span><span>b</span><span>c</span></div>`, e)
+	})
+}

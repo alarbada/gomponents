@@ -283,3 +283,15 @@ func Map[T any](ts []T, cb func(T) Node) []Node {
 	}
 	return nodes
 }
+
+// Foreach renders a slice of anything to a single Node.
+func Foreach[T any](ts []T, cb func(T) Node) Node {
+	return NodeFunc(func(w io.Writer) error {
+		for _, t := range ts {
+			if err := cb(t).Render(w); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
