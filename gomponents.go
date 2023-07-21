@@ -274,3 +274,12 @@ func If(condition bool, n Node) Node {
 	}
 	return nil
 }
+
+// Map a slice of anything to a slice of Nodes.
+func Map[T any](ts []T, cb func(T) Node) []Node {
+	nodes :=  make([]Node, 0, len(ts))
+	for _, t := range ts {
+		nodes = append(nodes, cb(t))
+	}
+	return nodes
+}

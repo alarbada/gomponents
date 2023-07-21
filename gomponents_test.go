@@ -35,6 +35,11 @@ func TestAttr(t *testing.T) {
 		assert.Equal(t, ` id="hat"`, a)
 	})
 
+	t.Run("renders custom attributes", func(t *testing.T) {
+		a := g.Attr("id", "hat")
+		assert.Equal(t, ` id="hat"`, a)
+	})
+
 	t.Run("panics with more than two arguments", func(t *testing.T) {
 		called := false
 		defer func() {
