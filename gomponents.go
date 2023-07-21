@@ -295,3 +295,32 @@ func Foreach[T any](ts []T, cb func(T) Node) Node {
 		return nil
 	})
 }
+
+
+type fragment struct {
+	children []Node
+}
+
+// String satisfies fmt.Stringer.
+func (f fragment) String() string {
+	var b strings.Builder
+	for _, c := range f.children {
+		c.Render(&b)
+	}
+	return b.String()
+}
+
+// Render satisfies Node.
+func (f *fragment) Render(w io.Writer) error {
+	for _, c := range f.children {
+		if err := c.Render(w); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Fragment groups multiple nodes into one Node. Kind of like React.Fragment.
+func Fragment(children ...Node) Node {
+	return &fragment{children: children}
+}

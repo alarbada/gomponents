@@ -300,3 +300,15 @@ func TestForeach(t *testing.T) {
 		assert.Equal(t, `<div><span>a</span><span>b</span><span>c</span></div>`, e)
 	})
 }
+
+func TestFragment(t *testing.T) {
+	t.Run("renders a collection of datatypes into a single node", func(t *testing.T) {
+		e := g.Fragment(
+			g.El("div", g.Text("a")),
+			g.El("div", g.Text("b")),
+			g.El("div", g.Text("c")),
+		)
+
+		assert.Equal(t, `<div>a</div><div>b</div><div>c</div>`, e)
+	})
+}
