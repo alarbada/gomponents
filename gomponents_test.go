@@ -95,17 +95,6 @@ func ExampleAttr_name_value() {
 	// Output: <div id="hat"></div>
 }
 
-type outsider struct{}
-
-func (o outsider) String() string {
-	return "outsider"
-}
-
-func (o outsider) Render(w io.Writer) error {
-	_, _ = w.Write([]byte("outsider"))
-	return nil
-}
-
 func TestEl(t *testing.T) {
 	t.Run("renders an empty element if no children given", func(t *testing.T) {
 		e := g.El("div")
@@ -136,11 +125,6 @@ func TestEl(t *testing.T) {
 	t.Run("renders attributes at the correct place regardless of placement in parameter list", func(t *testing.T) {
 		e := g.El("div", g.El("br"), g.Attr("class", "hat"))
 		assert.Equal(t, `<div class="hat"><br></div>`, e)
-	})
-
-	t.Run("renders outside if node does not implement nodeTypeDescriber", func(t *testing.T) {
-		e := g.El("div", outsider{})
-		assert.Equal(t, `<div>outsider</div>`, e)
 	})
 
 	t.Run("does not fail on nil node", func(t *testing.T) {

@@ -84,6 +84,10 @@ func (n erroringNode) Render(io.Writer) error {
 	return errors.New("don't want to")
 }
 
+func (erroringNode) Type() g.NodeType {
+	return g.ElementType
+}
+
 type statusCodeError struct {
 	code int
 }

@@ -23,6 +23,7 @@ import (
 // Node is a DOM node that can Render itself to a io.Writer.
 type Node interface {
 	Render(w io.Writer) error
+	Type() NodeType
 }
 
 // NodeType describes what type of Node it is, currently either an ElementType or an AttributeType.
@@ -35,12 +36,6 @@ const (
 	AttributeType
 )
 
-// nodeTypeDescriber can be implemented by Nodes to let callers know whether the Node is
-// an ElementType or an AttributeType. This is used for rendering.
-type nodeTypeDescriber interface {
-	Type() NodeType
-}
-
 // NodeFunc is a render function that is also a Node of ElementType.
 type NodeFunc func(io.Writer) error
 
@@ -49,7 +44,6 @@ func (n NodeFunc) Render(w io.Writer) error {
 	return n(w)
 }
 
-// Type satisfies nodeTypeDescriber.
 func (n NodeFunc) Type() NodeType {
 	return ElementType
 }
@@ -109,15 +103,8 @@ func renderChild(w *statefulWriter, c Node, t NodeType) {
 		return
 	}
 
-	switch t {
-	case ElementType:
-		if p, ok := c.(nodeTypeDescriber); !ok || p.Type() == ElementType {
-			w.err = c.Render(w.w)
-		}
-	case AttributeType:
-		if p, ok := c.(nodeTypeDescriber); ok && p.Type() == AttributeType {
-			w.err = c.Render(w.w)
-		}
+	if c.Type() == t {
+		w.err = c.Render(w.w)
 	}
 }
 
@@ -201,7 +188,6 @@ func (a *attr) Render(w io.Writer) error {
 	return sw.err
 }
 
-// Type satisfies nodeTypeDescriber.
 func (a *attr) Type() NodeType {
 	return AttributeType
 }
@@ -249,6 +235,10 @@ type group struct {
 	children []Node
 }
 
+func (group) Type() NodeType {
+	return ElementType
+}
+
 // String satisfies fmt.Stringer.
 func (g group) String() string {
 	panic("cannot render group directly")
@@ -277,7 +267,7 @@ func If(condition bool, n Node) Node {
 
 // Map a slice of anything to a slice of Nodes.
 func Map[T any](ts []T, cb func(T) Node) []Node {
-	nodes :=  make([]Node, 0, len(ts))
+	nodes := make([]Node, 0, len(ts))
 	for _, t := range ts {
 		nodes = append(nodes, cb(t))
 	}
@@ -296,9 +286,12 @@ func Foreach[T any](ts []T, cb func(T) Node) Node {
 	})
 }
 
-
 type fragment struct {
 	children []Node
+}
+
+func (fragment) Type() NodeType {
+	return ElementType
 }
 
 // String satisfies fmt.Stringer.
