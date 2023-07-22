@@ -29,10 +29,10 @@ type Node interface {
 // NodeType describes what type of Node it is, currently either an ElementType or an AttributeType.
 // This decides where a Node should be rendered.
 // Nodes default to being ElementType.
-type NodeType int
+type NodeType uint8
 
 const (
-	ElementType = NodeType(iota)
+	ElementType NodeType = iota
 	AttributeType
 )
 
@@ -68,8 +68,17 @@ func El(name string, children ...Node) Node {
 		w.WriteString("<")
 		w.WriteString(name)
 
+		var classAttrs []*attr
 		for _, c := range children {
-			renderChild(w, c, AttributeType)
+			if attr, ok := c.(*attr); ok && attr.name == "class" {
+				classAttrs = append(classAttrs, attr)
+			} else {
+				renderChild(w, c, AttributeType)
+			}
+		}
+
+		if len(classAttrs) > 0 {
+			joinClassAttrs(w, classAttrs)
 		}
 
 		w.WriteString(">")
@@ -190,6 +199,15 @@ func (a *attr) Render(w io.Writer) error {
 
 func (a *attr) Type() NodeType {
 	return AttributeType
+}
+
+func joinClassAttrs(w *statefulWriter, attrs []*attr) {
+	w.WriteString(` class="`)
+	for _, attr := range attrs {
+		w.WriteString(*attr.value)
+		w.WriteString(" ")
+	}
+	w.WriteString(`"`)
 }
 
 // String satisfies fmt.Stringer.

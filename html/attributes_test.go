@@ -102,3 +102,12 @@ func TestDataAttr(t *testing.T) {
 		assert.Equal(t, ` data-id="partyhat"`, n)
 	})
 }
+
+func TestMultipleClasses(t *testing.T) {
+	t.Run("joins multiple classes into one class attribute", func(t *testing.T) {
+		n := Div(Class("hat"), Class("party"))
+
+		// forget about the confusing space, did not want to add an extra if statement
+		assert.Equal(t, `<div class="hat party "></div>`, n)
+	})
+}
