@@ -68,17 +68,20 @@ func El(name string, children ...Node) Node {
 		w.WriteString("<")
 		w.WriteString(name)
 
-		var classAttrs []*attr
+		classValues := []string{}
 		for _, c := range children {
-			if attr, ok := c.(*attr); ok && attr.name == "class" {
-				classAttrs = append(classAttrs, attr)
-			} else {
-				renderChild(w, c, AttributeType)
-			}
+			renderAttributes(w, c, AttributeType, &classValues)
 		}
 
-		if len(classAttrs) > 0 {
-			joinClassAttrs(w, classAttrs)
+		if l := len(classValues); l > 0 {
+			w.WriteString(` class="`)
+			for i, v := range classValues {
+				w.WriteString(v)
+				if i < l-1 {
+					w.WriteString(" ")
+				}
+			}
+			w.WriteString(`"`)
 		}
 
 		w.WriteString(">")
@@ -99,21 +102,42 @@ func El(name string, children ...Node) Node {
 	})
 }
 
-// renderChild c to the given writer w if the node type is t.
-func renderChild(w *statefulWriter, c Node, t NodeType) {
-	if w.err != nil || c == nil {
+func renderAttributes(w *statefulWriter, n Node, t NodeType, classValues *[]string) {
+	if w.err != nil || n == nil {
 		return
 	}
 
-	if g, ok := c.(group); ok {
+	if g, ok := n.(group); ok {
+		for _, groupC := range g.children {
+			renderAttributes(w, groupC, t, classValues)
+		}
+		return
+	}
+
+	if attr, ok := n.(*attr); ok && attr.name == "class" {
+		*classValues = append(*classValues, *attr.value)
+		return
+	}
+
+	if n.Type() == t {
+		w.err = n.Render(w.w)
+	}
+}
+
+func renderChild(w *statefulWriter, n Node, t NodeType) {
+	if w.err != nil || n == nil {
+		return
+	}
+
+	if g, ok := n.(group); ok {
 		for _, groupC := range g.children {
 			renderChild(w, groupC, t)
 		}
 		return
 	}
 
-	if c.Type() == t {
-		w.err = c.Render(w.w)
+	if n.Type() == t {
+		w.err = n.Render(w.w)
 	}
 }
 
@@ -201,10 +225,10 @@ func (a *attr) Type() NodeType {
 	return AttributeType
 }
 
-func joinClassAttrs(w *statefulWriter, attrs []*attr) {
+func joinClassAttrs(w *statefulWriter, classValues []string) {
 	w.WriteString(` class="`)
-	for _, attr := range attrs {
-		w.WriteString(*attr.value)
+	for _, v := range classValues {
+		w.WriteString(v)
 		w.WriteString(" ")
 	}
 	w.WriteString(`"`)
@@ -293,10 +317,10 @@ func Map[T any](ts []T, cb func(T) Node) []Node {
 }
 
 // Foreach renders a slice of anything to a single Node.
-func Foreach[T any](ts []T, cb func(T) Node) Node {
+func Foreach(length int, cb func(int) Node) Node {
 	return NodeFunc(func(w io.Writer) error {
-		for _, t := range ts {
-			if err := cb(t).Render(w); err != nil {
+		for i := 0; i < length; i++ {
+			if err := cb(i).Render(w); err != nil {
 				return err
 			}
 		}

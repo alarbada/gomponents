@@ -103,11 +103,18 @@ func TestDataAttr(t *testing.T) {
 	})
 }
 
+
+func paper(children ...g.Node) g.Node {
+	return Div(Class("bg-white rounded shadow p-4"),
+		g.Group(children),
+	)
+}
+
 func TestMultipleClasses(t *testing.T) {
 	t.Run("joins multiple classes into one class attribute", func(t *testing.T) {
-		n := Div(Class("hat"), Class("party"))
+		n := paper(Class("p-10"), g.Text("hello"))
 
 		// forget about the confusing space, did not want to add an extra if statement
-		assert.Equal(t, `<div class="hat party "></div>`, n)
+		assert.Equal(t, `<div class="bg-white rounded shadow p-4 p-10">hello</div>`, n)
 	})
 }

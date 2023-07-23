@@ -276,9 +276,10 @@ func ExampleIf() {
 
 func TestForeach(t *testing.T) {
 	t.Run("renders a collection of datatypes into a single node", func(t *testing.T) {
+		s := []string{"a", "b", "c"}
 		e := g.El("div",
-			g.Foreach([]string{"a", "b", "c"}, func(v string) g.Node {
-				return g.El("span", g.Text(v))
+			g.Foreach(len(s), func(i int) g.Node {
+				return g.El("span", g.Text(s[i]))
 			}),
 		)
 		assert.Equal(t, `<div><span>a</span><span>b</span><span>c</span></div>`, e)
