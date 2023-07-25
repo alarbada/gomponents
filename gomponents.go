@@ -18,6 +18,7 @@ import (
 	"html/template"
 	"io"
 	"strings"
+	"unsafe"
 )
 
 // Node is a DOM node that can Render itself to a io.Writer.
@@ -147,12 +148,19 @@ type statefulWriter struct {
 	err error
 }
 
+func stringToBytes(str string) []byte {
+	if str == "" {
+		return nil
+	}
+	return unsafe.Slice(unsafe.StringData(str), len(str))
+}
+
 func (w *statefulWriter) WriteString(s string) {
 	if w.err != nil {
 		return
 	}
 
-	_, w.err = io.WriteString(w.w, s)
+	_, w.err = w.w.Write(stringToBytes(s))
 }
 
 // voidElements don't have end tags and must be treated differently in the rendering.
@@ -244,7 +252,8 @@ func (a *attr) String() string {
 // Text creates a text DOM Node that Renders the escaped string t.
 func Text(t string) Node {
 	return NodeFunc(func(w io.Writer) error {
-		_, err := io.WriteString(w, template.HTMLEscapeString(t))
+		bs := stringToBytes(template.HTMLEscapeString(t))
+		_, err := w.Write(bs)
 		return err
 	})
 }
@@ -252,7 +261,9 @@ func Text(t string) Node {
 // Textf creates a text DOM Node that Renders the interpolated and escaped string format.
 func Textf(format string, a ...interface{}) Node {
 	return NodeFunc(func(w io.Writer) error {
-		_, err := io.WriteString(w, template.HTMLEscapeString(fmt.Sprintf(format, a...)))
+		s := template.HTMLEscapeString(fmt.Sprintf(format, a...))
+		bs := stringToBytes(s)
+		_, err := w.Write(bs)
 		return err
 	})
 }
@@ -260,7 +271,8 @@ func Textf(format string, a ...interface{}) Node {
 // Raw creates a text DOM Node that just Renders the unescaped string t.
 func Raw(t string) Node {
 	return NodeFunc(func(w io.Writer) error {
-		_, err := io.WriteString(w, t)
+		bs := stringToBytes(t)
+		_, err := w.Write(bs)
 		return err
 	})
 }
@@ -268,7 +280,8 @@ func Raw(t string) Node {
 // Rawf creates a text DOM Node that just Renders the interpolated and unescaped string format.
 func Rawf(format string, a ...interface{}) Node {
 	return NodeFunc(func(w io.Writer) error {
-		_, err := io.WriteString(w, fmt.Sprintf(format, a...))
+		bs := stringToBytes(fmt.Sprintf(format, a...))
+		_, err := w.Write(bs)
 		return err
 	})
 }
