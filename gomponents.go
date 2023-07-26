@@ -333,7 +333,12 @@ func Map[T any](ts []T, cb func(T) Node) []Node {
 func Foreach(length int, cb func(int) Node) Node {
 	return NodeFunc(func(w io.Writer) error {
 		for i := 0; i < length; i++ {
-			if err := cb(i).Render(w); err != nil {
+			c := cb(i)
+			if c == nil {
+				continue
+			}
+
+			if err := c.Render(w); err != nil {
 				return err
 			}
 		}
