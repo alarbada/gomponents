@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	g "github.com/alarbada/gomponents"
+	. "github.com/alarbada/gomponents/html"
 	"github.com/alarbada/gomponents/internal/assert"
 )
 
@@ -162,40 +163,40 @@ func (w *erroringWriter) Write(p []byte) (n int, err error) {
 
 func TestText(t *testing.T) {
 	t.Run("renders escaped text", func(t *testing.T) {
-		e := g.Text("<div>")
+		e := Text("<div>")
 		assert.Equal(t, "&lt;div&gt;", e)
 	})
 }
 
 func ExampleText() {
-	e := g.El("span", g.Text("Party hats > normal hats."))
+	e := g.El("span", Text("Party hats > normal hats."))
 	_ = e.Render(os.Stdout)
 	// Output: <span>Party hats &gt; normal hats.</span>
 }
 
 func TestTextf(t *testing.T) {
 	t.Run("renders interpolated and escaped text", func(t *testing.T) {
-		e := g.Textf("<%v>", "div")
+		e := Textf("<%v>", "div")
 		assert.Equal(t, "&lt;div&gt;", e)
 	})
 }
 
 func ExampleTextf() {
-	e := g.El("span", g.Textf("%v party hats > %v normal hats.", 2, 3))
+	e := g.El("span", Textf("%v party hats > %v normal hats.", 2, 3))
 	_ = e.Render(os.Stdout)
 	// Output: <span>2 party hats &gt; 3 normal hats.</span>
 }
 
 func TestRaw(t *testing.T) {
 	t.Run("renders raw text", func(t *testing.T) {
-		e := g.Raw("<div>")
+		e := Raw("<div>")
 		assert.Equal(t, "<div>", e)
 	})
 }
 
 func ExampleRaw() {
 	e := g.El("span",
-		g.Raw(`<button onclick="javascript:alert('Party time!')">Party hats</button> &gt; normal hats.`),
+		Raw(`<button onclick="javascript:alert('Party time!')">Party hats</button> &gt; normal hats.`),
 	)
 	_ = e.Render(os.Stdout)
 	// Output: <span><button onclick="javascript:alert('Party time!')">Party hats</button> &gt; normal hats.</span>
@@ -203,14 +204,14 @@ func ExampleRaw() {
 
 func TestRawf(t *testing.T) {
 	t.Run("renders interpolated and raw text", func(t *testing.T) {
-		e := g.Rawf("<%v>", "div")
+		e := Rawf("<%v>", "div")
 		assert.Equal(t, "<div>", e)
 	})
 }
 
 func ExampleRawf() {
 	e := g.El("span",
-		g.Rawf(`<button onclick="javascript:alert('%v')">Party hats</button> &gt; normal hats.`, "Party time!"),
+		Rawf(`<button onclick="javascript:alert('%v')">Party hats</button> &gt; normal hats.`, "Party time!"),
 	)
 	_ = e.Render(os.Stdout)
 	// Output: <span><button onclick="javascript:alert('Party time!')">Party hats</button> &gt; normal hats.</span>
@@ -254,12 +255,12 @@ func TestGroup(t *testing.T) {
 
 func TestIf(t *testing.T) {
 	t.Run("returns node if condition is true", func(t *testing.T) {
-		n := g.El("div", g.If(true, g.El("span")))
+		n := g.El("div", g.If(true, g.El("span"), nil))
 		assert.Equal(t, "<div><span></span></div>", n)
 	})
 
 	t.Run("returns nil if condition is false", func(t *testing.T) {
-		n := g.El("div", g.If(false, g.El("span")))
+		n := g.El("div", g.If(false, g.El("span"), nil))
 		assert.Equal(t, "<div></div>", n)
 	})
 }
@@ -267,8 +268,8 @@ func TestIf(t *testing.T) {
 func ExampleIf() {
 	showMessage := true
 	e := g.El("div",
-		g.If(showMessage, g.El("span", g.Text("You lost your hat!"))),
-		g.If(!showMessage, g.El("span", g.Text("No messages."))),
+		g.If(showMessage, g.El("span", Text("You lost your hat!")), nil),
+		g.If(!showMessage, g.El("span", Text("No messages.")), nil),
 	)
 	_ = e.Render(os.Stdout)
 	// Output: <div><span>You lost your hat!</span></div>
@@ -278,8 +279,8 @@ func TestForeach(t *testing.T) {
 	t.Run("renders a collection of datatypes into a single node", func(t *testing.T) {
 		s := []string{"a", "b", "c"}
 		e := g.El("div",
-			g.Foreach(len(s), func(i int) g.Node {
-				return g.El("span", g.Text(s[i]))
+			Foreach(s, func(s string) g.Node {
+				return g.El("span", Text(s))
 			}),
 		)
 		assert.Equal(t, `<div><span>a</span><span>b</span><span>c</span></div>`, e)
@@ -289,11 +290,39 @@ func TestForeach(t *testing.T) {
 func TestFragment(t *testing.T) {
 	t.Run("renders a collection of datatypes into a single node", func(t *testing.T) {
 		e := g.Fragment(
-			g.El("div", g.Text("a")),
-			g.El("div", g.Text("b")),
-			g.El("div", g.Text("c")),
+			g.El("div", Text("a")),
+			g.El("div", Text("b")),
+			g.El("div", Text("c")),
 		)
 
 		assert.Equal(t, `<div>a</div><div>b</div><div>c</div>`, e)
 	})
+}
+
+func example() g.Node {
+	return Div(
+		g.Attr("class", "foo"),
+		g.Attr("id", "bar"),
+		g.Attr("data-foo", "bar"),
+		g.Attr("data-bar", "baz"),
+		Div(P(Text("Hello, world!"))),
+		Div(P(Text("Hello, world!"))),
+		Div(P(Text("Hello, world!"))),
+		Div(P(Text("Hello, world!"))),
+	)
+}
+
+func BenchmarkNoStatic(b *testing.B) {
+	example := example()
+	for i := 0; i < b.N; i++ {
+		example.Render(io.Discard)
+	}
+}
+
+func BenchmarkStatic(b *testing.B) {
+	example := g.Static(example())
+
+	for i := 0; i < b.N; i++ {
+		example.Render(io.Discard)
+	}
 }

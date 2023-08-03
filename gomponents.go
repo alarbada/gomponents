@@ -14,7 +14,6 @@
 package gomponents
 
 import (
-	"fmt"
 	"html/template"
 	"io"
 	"strings"
@@ -148,7 +147,7 @@ type statefulWriter struct {
 	err error
 }
 
-func stringToBytes(str string) []byte {
+func StringToBytes(str string) []byte {
 	if str == "" {
 		return nil
 	}
@@ -160,7 +159,7 @@ func (w *statefulWriter) WriteString(s string) {
 		return
 	}
 
-	_, w.err = w.w.Write(stringToBytes(s))
+	_, w.err = w.w.Write(StringToBytes(s))
 }
 
 // voidElements don't have end tags and must be treated differently in the rendering.
@@ -249,43 +248,6 @@ func (a *attr) String() string {
 	return b.String()
 }
 
-// Text creates a text DOM Node that Renders the escaped string t.
-func Text(t string) Node {
-	return NodeFunc(func(w io.Writer) error {
-		bs := stringToBytes(template.HTMLEscapeString(t))
-		_, err := w.Write(bs)
-		return err
-	})
-}
-
-// Textf creates a text DOM Node that Renders the interpolated and escaped string format.
-func Textf(format string, a ...interface{}) Node {
-	return NodeFunc(func(w io.Writer) error {
-		s := template.HTMLEscapeString(fmt.Sprintf(format, a...))
-		bs := stringToBytes(s)
-		_, err := w.Write(bs)
-		return err
-	})
-}
-
-// Raw creates a text DOM Node that just Renders the unescaped string t.
-func Raw(t string) Node {
-	return NodeFunc(func(w io.Writer) error {
-		bs := stringToBytes(t)
-		_, err := w.Write(bs)
-		return err
-	})
-}
-
-// Rawf creates a text DOM Node that just Renders the interpolated and unescaped string format.
-func Rawf(format string, a ...interface{}) Node {
-	return NodeFunc(func(w io.Writer) error {
-		bs := stringToBytes(fmt.Sprintf(format, a...))
-		_, err := w.Write(bs)
-		return err
-	})
-}
-
 type group struct {
 	children []Node
 }
@@ -313,37 +275,11 @@ func Group(children []Node) Node {
 
 // If condition is true, return the given Node. Otherwise, return nil.
 // This helper function is good for inlining elements conditionally.
-func If(condition bool, n Node) Node {
+func If(condition bool, thenNode, elseNode Node) Node {
 	if condition {
-		return n
+		return thenNode
 	}
-	return nil
-}
-
-// Map a slice of anything to a slice of Nodes.
-func Map[T any](ts []T, cb func(T) Node) []Node {
-	nodes := make([]Node, 0, len(ts))
-	for _, t := range ts {
-		nodes = append(nodes, cb(t))
-	}
-	return nodes
-}
-
-// Foreach renders a slice of anything to a single Node.
-func Foreach(length int, cb func(int) Node) Node {
-	return NodeFunc(func(w io.Writer) error {
-		for i := 0; i < length; i++ {
-			c := cb(i)
-			if c == nil {
-				continue
-			}
-
-			if err := c.Render(w); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+	return elseNode
 }
 
 type fragment struct {
@@ -376,4 +312,18 @@ func (f *fragment) Render(w io.Writer) error {
 // Fragment groups multiple nodes into one Node. Kind of like React.Fragment.
 func Fragment(children ...Node) Node {
 	return &fragment{children: children}
+}
+
+func Static(children ...Node) Node {
+	var sb strings.Builder
+	err := Fragment(children...).Render(&sb)
+
+	return NodeFunc(func(w io.Writer) error {
+		if err != nil {
+			return err
+		}
+
+		_, err := w.Write(StringToBytes(sb.String()))
+		return err
+	})
 }

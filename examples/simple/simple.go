@@ -34,10 +34,10 @@ func Page(p props) g.Node {
 		Language: "en",
 		Head: []g.Node{
 			StyleEl(Type("text/css"),
-				g.Raw("html { font-family: sans-serif; }"),
-				g.Raw("ul { list-style-type: none; margin: 0; padding: 0; overflow: hidden; }"),
-				g.Raw("ul li { display: block; padding: 8px; float: left; }"),
-				g.Raw(".is-active { font-weight: bold; }"),
+				Raw("html { font-family: sans-serif; }"),
+				Raw("ul { list-style-type: none; margin: 0; padding: 0; overflow: hidden; }"),
+				Raw("ul li { display: block; padding: 8px; float: left; }"),
+				Raw(".is-active { font-weight: bold; }"),
 			),
 		},
 		Body: []g.Node{
@@ -45,8 +45,8 @@ func Page(p props) g.Node {
 				{Path: "/foo", Name: "Foo"},
 				{Path: "/bar", Name: "Bar"},
 			}),
-			H1(g.Text(p.title)),
-			P(g.Textf("Welcome to the page at %v.", p.path)),
+			H1(Text(p.title)),
+			P(Textf("Welcome to the page at %v.", p.path)),
 		},
 	})
 }
@@ -61,9 +61,9 @@ func Navbar(currentPath string, links []PageLink) g.Node {
 		Ul(
 			NavbarLink("/", "Home", currentPath),
 
-			g.Group(g.Map(links, func(pl PageLink) g.Node {
+			Foreach(links, func(pl PageLink) g.Node {
 				return NavbarLink(pl.Path, pl.Name, currentPath)
-			})),
+			}),
 		),
 
 		Hr(),
@@ -71,5 +71,5 @@ func Navbar(currentPath string, links []PageLink) g.Node {
 }
 
 func NavbarLink(href, name, currentPath string) g.Node {
-	return Li(A(Href(href), c.Classes{"is-active": currentPath == href}, g.Text(name)))
+	return Li(A(Href(href), c.Classes{"is-active": currentPath == href}, Text(name)))
 }

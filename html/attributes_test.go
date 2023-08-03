@@ -112,7 +112,7 @@ func paper(children ...g.Node) g.Node {
 
 func TestMultipleClasses(t *testing.T) {
 	t.Run("joins multiple classes into one class attribute", func(t *testing.T) {
-		n := paper(Class("p-10"), g.Text("hello"))
+		n := paper(Class("p-10"), Text("hello"))
 
 		// forget about the confusing space, did not want to add an extra if statement
 		assert.Equal(t, `<div class="bg-white rounded shadow p-4 p-10">hello</div>`, n)

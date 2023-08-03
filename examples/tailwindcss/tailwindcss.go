@@ -29,22 +29,22 @@ func createHandler(title string, body g.Node) http.HandlerFunc {
 
 func indexPage() (string, g.Node) {
 	return "Welcome!", Div(
-		H1(g.Text("Welcome to this example page")),
-		P(g.Text("I hope it will make you happy. 😄 It's using TailwindCSS for styling.")),
+		H1(Text("Welcome to this example page")),
+		P(Text("I hope it will make you happy. 😄 It's using TailwindCSS for styling.")),
 	)
 }
 
 func contactPage() (string, g.Node) {
 	return "Contact", Div(
-		H1(g.Text("Contact us")),
-		P(g.Text("Just do it.")),
+		H1(Text("Contact us")),
+		P(Text("Just do it.")),
 	)
 }
 
 func aboutPage() (string, g.Node) {
 	return "About", Div(
-		H1(g.Text("About this site")),
-		P(g.Text("This is a site showing off gomponents.")),
+		H1(Text("About this site")),
+		P(Text("This is a site showing off gomponents.")),
 	)
 }
 
@@ -84,9 +84,9 @@ func Navbar(currentPath string, links []PageLink) g.Node {
 				NavbarLink("/", "Home", currentPath == "/"),
 
 				// We can Map custom slices to Nodes
-				g.Group(g.Map(links, func(pl PageLink) g.Node {
+				Foreach(links, func(pl PageLink) g.Node {
 					return NavbarLink(pl.Path, pl.Name, currentPath == pl.Path)
-				})),
+				}),
 			),
 		),
 	)
@@ -94,7 +94,7 @@ func Navbar(currentPath string, links []PageLink) g.Node {
 
 // NavbarLink is a link in the Navbar.
 func NavbarLink(path, text string, active bool) g.Node {
-	return A(Href(path), g.Text(text),
+	return A(Href(path), Text(text),
 		// Apply CSS classes conditionally
 		c.Classes{
 			"px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:text-white focus:bg-gray-700": true,
@@ -116,13 +116,13 @@ func PageFooter() g.Node {
 	return Footer(Class("prose prose-sm prose-indigo"),
 		P(
 			// We can use string interpolation directly, like fmt.Sprintf.
-			g.Textf("Rendered %v. ", time.Now().Format(time.RFC3339)),
+			Textf("Rendered %v. ", time.Now().Format(time.RFC3339)),
 
 			// Conditional inclusion
-			g.If(time.Now().Second()%2 == 0, g.Text("It's an even second.")),
-			g.If(time.Now().Second()%2 == 1, g.Text("It's an odd second.")),
+			g.If(time.Now().Second()%2 == 0, Text("It's an even second."), nil),
+			g.If(time.Now().Second()%2 == 1, Text("It's an odd second."), nil),
 		),
 
-		P(A(Href("https://www.gomponents.com"), g.Text("gomponents"))),
+		P(A(Href("https://www.gomponents.com"), Text("gomponents"))),
 	)
 }

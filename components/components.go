@@ -23,12 +23,12 @@ type HTML5Props struct {
 // HTML5 document template.
 func HTML5(p HTML5Props) g.Node {
 	return Doctype(
-		HTML(g.If(p.Language != "", Lang(p.Language)),
+		HTML(g.If(p.Language != "", Lang(p.Language), nil),
 			Head(
 				Meta(Charset("utf-8")),
 				Meta(Name("viewport"), Content("width=device-width, initial-scale=1")),
-				TitleEl(g.Text(p.Title)),
-				g.If(p.Description != "", Meta(Name("description"), Content(p.Description))),
+				TitleEl(Text(p.Title)),
+				g.If(p.Description != "", Meta(Name("description"), Content(p.Description)), nil),
 				g.Group(p.Head),
 			),
 			Body(g.Group(p.Body)),
