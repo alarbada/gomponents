@@ -103,7 +103,6 @@ func TestDataAttr(t *testing.T) {
 	})
 }
 
-
 func paper(children ...g.Node) g.Node {
 	return Div(Class("bg-white rounded shadow p-4"),
 		g.Group(children),

@@ -61,7 +61,6 @@ func LoopTimes(times int, cb func(i int) g.Node) g.Node {
 	})
 }
 
-
 // Text creates a text DOM Node that Renders the escaped string t.
 func Text(t string) g.Node {
 	return g.NodeFunc(func(w io.Writer) error {
@@ -98,4 +97,3 @@ func Rawf(format string, a ...interface{}) g.Node {
 		return err
 	})
 }
-
