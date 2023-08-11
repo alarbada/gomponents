@@ -23,6 +23,10 @@ import (
 // Node is a DOM node that can Render itself to a io.Writer.
 type Node interface {
 	Render(w io.Writer) error
+}
+
+type TypedNode interface {
+	Node
 	Type() NodeType
 }
 
@@ -35,6 +39,17 @@ const (
 	ElementType NodeType = iota
 	AttributeType
 )
+
+// AsEl (AsElement) and AsAttr (AsAttribute) are used to mark a Node as being
+// of a certain type. This is a convenience for creating custom Nodes that are
+// also of a certain type.
+type (
+	AsEl   struct{}
+	AsAttr struct{}
+)
+
+func (AsEl) Type() NodeType   { return ElementType }
+func (AsAttr) Type() NodeType { return AttributeType }
 
 // NodeFunc is a render function that is also a Node of ElementType.
 type NodeFunc func(io.Writer) error
@@ -119,7 +134,7 @@ func renderAttributes(w *statefulWriter, n Node, t NodeType, classValues *[]stri
 		return
 	}
 
-	if n.Type() == t {
+	if n, ok := n.(TypedNode); ok && n.Type() == t {
 		w.err = n.Render(w.w)
 	}
 }
@@ -136,7 +151,7 @@ func renderChild(w *statefulWriter, n Node, t NodeType) {
 		return
 	}
 
-	if n.Type() == t {
+	if n, ok := n.(TypedNode); ok && n.Type() == t {
 		w.err = n.Render(w.w)
 	}
 }

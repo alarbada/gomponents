@@ -3,6 +3,7 @@ package html_test
 import (
 	"errors"
 	"fmt"
+	"io"
 	"testing"
 
 	g "github.com/alarbada/gomponents"
@@ -152,4 +153,45 @@ func TestSimpleVoidKindElements(t *testing.T) {
 			assert.Equal(t, fmt.Sprintf(`<%v id="hat">`, name), n)
 		})
 	}
+}
+
+type CustomComponent struct {
+	PropA string
+	PropB string
+}
+
+func (c CustomComponent) Render(w io.Writer) error {
+	return Div(
+		g.Attr("prop-a", c.PropA),
+		g.Attr("prop-b", c.PropB),
+	).Render(w)
+}
+
+func (c CustomComponent) Children(children ...g.Node) g.Node {
+	return Div(
+		g.Attr("prop-a", c.PropA),
+		g.Attr("prop-b", c.PropB),
+		g.Group(children),
+	)
+}
+
+type shoelaceDivider struct{ g.AsEl }
+
+func (s shoelaceDivider) Render(w io.Writer) error {
+	return g.El("sl-divider").Render(w)
+}
+
+func TestCustomComponent(t *testing.T) {
+	n := CustomComponent{
+		PropA: "a",
+		PropB: "b",
+	}
+	t.Run("should output custom component", func(t *testing.T) {
+		assert.Equal(t, `<div prop-a="a" prop-b="b"></div>`, n)
+	})
+
+	t.Run("should output custom component with custom tag", func(t *testing.T) {
+		n := n.Children(shoelaceDivider{})
+		assert.Equal(t, `<div prop-a="a" prop-b="b"><sl-divider></sl-divider></div>`, n)
+	})
 }
