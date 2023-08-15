@@ -40,17 +40,6 @@ const (
 	AttributeType
 )
 
-// AsEl (AsElement) and AsAttr (AsAttribute) are used to mark a Node as being
-// of a certain type. This is a convenience for creating custom Nodes that are
-// also of a certain type.
-type (
-	AsEl   struct{}
-	AsAttr struct{}
-)
-
-func (AsEl) Type() NodeType   { return ElementType }
-func (AsAttr) Type() NodeType { return AttributeType }
-
 // NodeFunc is a render function that is also a Node of ElementType.
 type NodeFunc func(io.Writer) error
 
@@ -85,7 +74,7 @@ func El(name string, children ...Node) Node {
 
 		classValues := []string{}
 		for _, c := range children {
-			renderAttributes(w, c, AttributeType, &classValues)
+			renderAttributes(w, c, &classValues)
 		}
 
 		if l := len(classValues); l > 0 {
@@ -106,7 +95,7 @@ func El(name string, children ...Node) Node {
 		}
 
 		for _, c := range children {
-			renderChild(w, c, ElementType)
+			renderChild(w, c)
 		}
 
 		w.WriteString("</")
@@ -117,14 +106,14 @@ func El(name string, children ...Node) Node {
 	})
 }
 
-func renderAttributes(w *statefulWriter, n Node, t NodeType, classValues *[]string) {
+func renderAttributes(w *statefulWriter, n Node, classValues *[]string) {
 	if w.err != nil || n == nil {
 		return
 	}
 
 	if g, ok := n.(group); ok {
 		for _, groupC := range g.children {
-			renderAttributes(w, groupC, t, classValues)
+			renderAttributes(w, groupC, classValues)
 		}
 		return
 	}
@@ -134,25 +123,27 @@ func renderAttributes(w *statefulWriter, n Node, t NodeType, classValues *[]stri
 		return
 	}
 
-	if n, ok := n.(TypedNode); ok && n.Type() == t {
+	if n, ok := n.(TypedNode); ok && n.Type() == AttributeType {
 		w.err = n.Render(w.w)
 	}
 }
 
-func renderChild(w *statefulWriter, n Node, t NodeType) {
+func renderChild(w *statefulWriter, n Node) {
 	if w.err != nil || n == nil {
 		return
 	}
 
 	if g, ok := n.(group); ok {
 		for _, groupC := range g.children {
-			renderChild(w, groupC, t)
+			renderChild(w, groupC)
 		}
 		return
 	}
 
-	if n, ok := n.(TypedNode); ok && n.Type() == t {
+	typed, ok := n.(TypedNode)
+	if !ok || typed.Type() == ElementType {
 		w.err = n.Render(w.w)
+		return
 	}
 }
 
@@ -324,7 +315,9 @@ func (f *fragment) Render(w io.Writer) error {
 	return nil
 }
 
-// Fragment groups multiple nodes into one Node. Kind of like React.Fragment.
+// Fragment groups multiple nodes into one Node. Kind of like React.Fragment. 
+// It has an easier api than Group for rendering a collection of nodes without
+// specifiying a parent element.
 func Fragment(children ...Node) Node {
 	return &fragment{children: children}
 }

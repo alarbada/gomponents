@@ -175,7 +175,7 @@ func (c CustomComponent) Children(children ...g.Node) g.Node {
 	)
 }
 
-type shoelaceDivider struct{ g.AsEl }
+type shoelaceDivider struct{}
 
 func (s shoelaceDivider) Render(w io.Writer) error {
 	return g.El("sl-divider").Render(w)

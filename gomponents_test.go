@@ -312,6 +312,15 @@ func example() g.Node {
 	)
 }
 
+func TestStatic(t *testing.T) {
+	t.Run("renders a node to a static string", func(t *testing.T) {
+		e := g.Static(example())
+		assert.Equal(t,
+		`<div id="bar" data-foo="bar" data-bar="baz" class="foo"><div><p>Hello, world!</p></div><div><p>Hello, world!</p></div><div><p>Hello, world!</p></div><div><p>Hello, world!</p></div></div>`,
+		e)
+	})
+}
+
 func BenchmarkNoStatic(b *testing.B) {
 	example := example()
 	for i := 0; i < b.N; i++ {
